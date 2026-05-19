@@ -424,64 +424,64 @@ User 1──N Payment (created_by)
 ### 7.1 认证
 
 ```
-POST /api/auth/login/          # 登录，返回 JWT
-POST /api/auth/refresh/        # 刷新 Token
-GET  /api/auth/me/             # 当前用户信息
+POST /api/v1/auth/login/          # 登录，返回 JWT
+POST /api/v1/auth/refresh/        # 刷新 Token
+GET  /api/v1/auth/me/             # 当前用户信息
 ```
 
 ### 7.2 客户
 
 ```
-GET    /api/customers/          # 客户列表（分页、搜索）
-POST   /api/customers/          # 创建客户
-GET    /api/customers/{id}/     # 客户详情
-PUT    /api/customers/{id}/     # 更新客户
-DELETE /api/customers/{id}/     # 删除客户（软删除）
+GET    /api/v1/customers/          # 客户列表（分页、搜索）
+POST   /api/v1/customers/          # 创建客户
+GET    /api/v1/customers/{id}/     # 客户详情
+PUT    /api/v1/customers/{id}/     # 更新客户
+DELETE /api/v1/customers/{id}/     # 删除客户（软删除）
 ```
 
 ### 7.3 订单
 
 ```
-GET    /api/orders/             # 订单列表（筛选、分页）
-POST   /api/orders/             # 创建订单
-GET    /api/orders/{id}/        # 订单详情
-PUT    /api/orders/{id}/        # 更新订单
-PATCH  /api/orders/{id}/status/ # 变更订单状态
+GET    /api/v1/orders/             # 订单列表（筛选、分页）
+POST   /api/v1/orders/             # 创建订单
+GET    /api/v1/orders/{id}/        # 订单详情
+PUT    /api/v1/orders/{id}/        # 更新订单
+PATCH  /api/v1/orders/{id}/status/ # 变更订单状态
 ```
 
 ### 7.4 成本
 
 ```
-GET    /api/orders/{id}/cost/   # 获取订单成本
-POST   /api/orders/{id}/cost/   # 录入/更新订单成本
-GET    /api/costing/summary/    # 成本汇总（按客户/月份筛选）
+GET    /api/v1/orders/{id}/cost/   # 获取订单成本
+POST   /api/v1/orders/{id}/cost/   # 录入/更新订单成本
+GET    /api/v1/costing/summary/    # 成本汇总（按客户/月份筛选）
 ```
 
 ### 7.5 财务
 
 ```
-GET    /api/receivables/            # 应收列表
-GET    /api/receivables/{id}/       # 应收详情
-POST   /api/payments/               # 登记收付款
-GET    /api/payments/               # 收付款记录列表
+GET    /api/v1/receivables/            # 应收列表
+GET    /api/v1/receivables/{id}/       # 应收详情
+POST   /api/v1/payments/               # 登记收付款
+GET    /api/v1/payments/               # 收付款记录列表
 
-GET    /api/statements/             # 对账单列表
-POST   /api/statements/generate/    # 生成对账单
-PUT    /api/statements/{id}/        # 编辑对账单
-PATCH  /api/statements/{id}/confirm/ # 确认对账单
-GET    /api/statements/{id}/export/ # 导出对账单(Excel/PDF)
+GET    /api/v1/statements/             # 对账单列表
+POST   /api/v1/statements/generate/    # 生成对账单
+PUT    /api/v1/statements/{id}/        # 编辑对账单
+PATCH  /api/v1/statements/{id}/confirm/ # 确认对账单
+GET    /api/v1/statements/{id}/export/ # 导出对账单(Excel/PDF)
 
-GET    /api/payables/               # 应付列表
-POST   /api/payables/               # 创建应付
+GET    /api/v1/payables/               # 应付列表
+POST   /api/v1/payables/               # 创建应付
 ```
 
 ### 7.6 报表
 
 ```
-GET /api/reports/dashboard/         # 看板数据
-GET /api/reports/revenue-trend/     # 收入趋势
-GET /api/reports/customer-analysis/ # 客户分析
-GET /api/reports/cost-analysis/     # 成本分析
+GET /api/v1/reports/dashboard/         # 看板数据
+GET /api/v1/reports/revenue-trend/     # 收入趋势
+GET /api/v1/reports/customer-analysis/ # 客户分析
+GET /api/v1/reports/cost-analysis/     # 成本分析
 ```
 
 ## 8. 非功能性需求

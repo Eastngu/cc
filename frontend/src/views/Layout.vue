@@ -13,7 +13,7 @@
         text-color="#bfcbd9"
         active-text-color="#409eff"
       >
-        <el-menu-item index="/">
+        <el-menu-item v-if="hasAccess(['boss', 'finance'])" index="/">
           <el-icon><DataAnalysis /></el-icon>
           <template #title>经营看板</template>
         </el-menu-item>
@@ -21,7 +21,7 @@
           <el-icon><Document /></el-icon>
           <template #title>订单管理</template>
         </el-menu-item>
-        <el-sub-menu index="/finance">
+        <el-sub-menu v-if="hasAccess(['boss', 'finance'])" index="/finance">
           <template #title>
             <el-icon><Wallet /></el-icon>
             <span>财务管理</span>
@@ -43,11 +43,11 @@
             <template #title>月度对账单</template>
           </el-menu-item>
         </el-sub-menu>
-        <el-menu-item index="/costing">
+        <el-menu-item v-if="hasAccess(['boss', 'finance'])" index="/costing">
           <el-icon><Coin /></el-icon>
           <template #title>成本核算</template>
         </el-menu-item>
-        <el-sub-menu index="/settings">
+        <el-sub-menu v-if="hasAccess(['boss', 'finance'])" index="/settings">
           <template #title>
             <el-icon><Setting /></el-icon>
             <span>系统设置</span>
@@ -99,6 +99,10 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const auth = useAuthStore()
 const isCollapse = ref(false)
+
+function hasAccess(roles) {
+  return roles.includes(auth.userRole)
+}
 
 function handleCommand(command) {
   if (command === 'logout') {

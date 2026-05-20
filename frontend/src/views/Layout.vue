@@ -21,6 +21,24 @@
           <el-icon><Document /></el-icon>
           <template #title>订单管理</template>
         </el-menu-item>
+        <el-sub-menu index="/finance">
+          <template #title>
+            <el-icon><Wallet /></el-icon>
+            <span>财务管理</span>
+          </template>
+          <el-menu-item index="/finance/receivables">
+            <el-icon><Tickets /></el-icon>
+            <template #title>应收账款</template>
+          </el-menu-item>
+          <el-menu-item index="/finance/payables">
+            <el-icon><CreditCard /></el-icon>
+            <template #title>应付账款</template>
+          </el-menu-item>
+          <el-menu-item index="/finance/payments">
+            <el-icon><Money /></el-icon>
+            <template #title>收付款记录</template>
+          </el-menu-item>
+        </el-sub-menu>
         <el-sub-menu index="/settings">
           <template #title>
             <el-icon><Setting /></el-icon>
@@ -67,7 +85,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { DataAnalysis, User, Fold, Expand, Document, Setting, Tools } from '@element-plus/icons-vue'
+import { DataAnalysis, User, Fold, Expand, Document, Setting, Tools, Wallet, Tickets, CreditCard, Money } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()

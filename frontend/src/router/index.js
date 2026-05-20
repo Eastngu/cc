@@ -37,6 +37,24 @@ const routes = [
         component: () => import('@/views/settings/ProcessList.vue'),
         meta: { title: '工艺配置' },
       },
+      {
+        path: 'finance/receivables',
+        name: 'Receivables',
+        component: () => import('@/views/finance/ReceivableList.vue'),
+        meta: { title: '应收账款' },
+      },
+      {
+        path: 'finance/payables',
+        name: 'Payables',
+        component: () => import('@/views/finance/PayableList.vue'),
+        meta: { title: '应付账款' },
+      },
+      {
+        path: 'finance/payments',
+        name: 'Payments',
+        component: () => import('@/views/finance/PaymentList.vue'),
+        meta: { title: '收付款记录' },
+      },
     ],
   },
 ]

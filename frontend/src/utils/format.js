@@ -29,3 +29,28 @@ export const unitMap = {
   weight: 'kg',
   piece: '件',
 }
+
+export const receivableStatusMap = {
+  open: { label: '未结', type: 'danger' },
+  partial: { label: '部分回款', type: 'warning' },
+  settled: { label: '已结清', type: 'success' },
+}
+
+export const payableStatusMap = {
+  open: { label: '未付', type: 'danger' },
+  partial: { label: '部分付款', type: 'warning' },
+  settled: { label: '已结清', type: 'success' },
+}
+
+export const paymentMethodMap = {
+  transfer: '银行转账',
+  cash: '现金',
+  acceptance: '承兑汇票',
+}
+
+export const payableCategoryMap = {
+  material: '原料',
+  electricity: '电费',
+  equipment: '设备',
+  other: '其他',
+}

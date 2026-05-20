@@ -43,81 +43,30 @@
       </el-col>
     </el-row>
 
-    <!-- 近6个月趋势 -->
+    <!-- 图表行 -->
     <el-row :gutter="20" style="margin-bottom: 20px">
-      <el-col :span="24">
-        <el-card>
+      <el-col :span="14">
+        <el-card shadow="hover">
           <template #header>
-            <span class="card-title">近6个月收支趋势</span>
+            <span class="card-title">近6个月收入/利润趋势</span>
           </template>
-          <el-table
-            v-loading="trendLoading"
-            :data="trendData"
-            size="small"
-            stripe
-          >
-            <el-table-column prop="month" label="月份" width="120" align="center" />
-            <el-table-column label="营收" align="right">
-              <template #default="{ row }">
-                {{ formatCurrency(row.revenue) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="成本" align="right">
-              <template #default="{ row }">
-                {{ formatCurrency(row.cost) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="利润" align="right">
-              <template #default="{ row }">
-                <span :class="Number(row.profit) >= 0 ? 'text-success' : 'text-danger'">
-                  {{ formatCurrency(row.profit) }}
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column label="利润率" width="100" align="center">
-              <template #default="{ row }">
-                <span v-if="Number(row.revenue) > 0" :class="getProfitRateClass(row.profit, row.revenue)">
-                  {{ ((Number(row.profit) / Number(row.revenue)) * 100).toFixed(1) }}%
-                </span>
-                <span v-else>-</span>
-              </template>
-            </el-table-column>
-          </el-table>
+          <div v-loading="trendLoading" ref="trendChartRef" style="height: 300px;"></div>
+        </el-card>
+      </el-col>
+      <el-col :span="10">
+        <el-card shadow="hover">
+          <template #header>
+            <span class="card-title">客户应收 TOP5</span>
+          </template>
+          <div v-loading="analysisLoading" ref="customerChartRef" style="height: 300px;"></div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 客户应收 + 近期订单 -->
-    <el-row :gutter="20">
-      <el-col :span="12">
-        <el-card>
-          <template #header>
-            <span class="card-title">客户应收 TOP5</span>
-          </template>
-          <el-table
-            v-loading="analysisLoading"
-            :data="top5Customers"
-            size="small"
-            stripe
-          >
-            <el-table-column prop="customer_name" label="客户" min-width="120" />
-            <el-table-column label="应收余额" align="right">
-              <template #default="{ row }">
-                <span class="text-danger">{{ formatCurrency(row.outstanding_balance) }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="回款率" width="90" align="center">
-              <template #default="{ row }">
-                {{ row.collection_rate != null ? `${Number(row.collection_rate).toFixed(1)}%` : '-' }}
-              </template>
-            </el-table-column>
-            <el-table-column label="订单数" width="70" align="center" prop="order_count" />
-          </el-table>
-        </el-card>
-      </el-col>
-
-      <el-col :span="12">
-        <el-card>
+    <!-- 近期订单 -->
+    <el-row>
+      <el-col :span="24">
+        <el-card shadow="hover">
           <template #header>
             <span class="card-title">近期订单</span>
           </template>
@@ -149,10 +98,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import * as echarts from 'echarts'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { getDashboard, getRevenueTrend, getCustomerAnalysis } from '@/api/reports'
 import { getOrders } from '@/api/orders'
 import { formatCurrency, orderStatusMap } from '@/utils/format'
+
+// ── State ────────────────────────────────────────────────────────────────────
 
 const dashboard = ref({
   monthly_revenue: 0,
@@ -162,25 +114,165 @@ const dashboard = ref({
   revenue_change_rate: null,
 })
 
-const trendData = ref([])
 const trendLoading = ref(false)
-
-const top5Customers = ref([])
 const analysisLoading = ref(false)
-
-const recentOrders = ref([])
 const ordersLoading = ref(false)
+const recentOrders = ref([])
+
+// ── Chart refs & instances ────────────────────────────────────────────────────
+
+const trendChartRef = ref(null)
+const customerChartRef = ref(null)
+let trendChart = null
+let customerChart = null
+
+// ── Chart renderers ───────────────────────────────────────────────────────────
+
+function renderTrendChart(data) {
+  if (!trendChart) return
+  if (!data.length) {
+    trendChart.clear()
+    return
+  }
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      formatter(params) {
+        let result = params[0].name + '<br/>'
+        params.forEach(p => {
+          result += `${p.marker} ${p.seriesName}: ¥${Number(p.value).toLocaleString()}<br/>`
+        })
+        return result
+      },
+    },
+    legend: {
+      data: ['收入', '利润'],
+      top: 10,
+    },
+    grid: {
+      left: '3%', right: '4%', bottom: '3%', containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      data: data.map(d => d.month),
+      boundaryGap: false,
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: {
+        formatter: val => val >= 10000 ? (val / 10000) + '万' : val,
+      },
+    },
+    series: [
+      {
+        name: '收入',
+        type: 'line',
+        smooth: true,
+        data: data.map(d => d.revenue),
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(64, 158, 255, 0.3)' },
+            { offset: 1, color: 'rgba(64, 158, 255, 0.05)' },
+          ]),
+        },
+        itemStyle: { color: '#409EFF' },
+        lineStyle: { width: 2 },
+      },
+      {
+        name: '利润',
+        type: 'line',
+        smooth: true,
+        data: data.map(d => d.profit),
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(103, 194, 58, 0.3)' },
+            { offset: 1, color: 'rgba(103, 194, 58, 0.05)' },
+          ]),
+        },
+        itemStyle: { color: '#67C23A' },
+        lineStyle: { width: 2 },
+      },
+    ],
+  }
+  trendChart.setOption(option)
+}
+
+function renderCustomerChart(data) {
+  if (!customerChart) return
+  if (!data.length) {
+    customerChart.clear()
+    return
+  }
+  // Sort desc, take top 5, then reverse so largest is at top of horizontal bar
+  const top5 = [...data]
+    .sort((a, b) => Number(b.outstanding_balance) - Number(a.outstanding_balance))
+    .slice(0, 5)
+    .reverse()
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      formatter: params =>
+        `${params[0].name}<br/>应收余额: ¥${Number(params[0].value).toLocaleString()}`,
+    },
+    grid: {
+      left: '3%', right: '10%', bottom: '3%', containLabel: true,
+    },
+    xAxis: {
+      type: 'value',
+      axisLabel: {
+        formatter: val => val >= 10000 ? (val / 10000) + '万' : val,
+      },
+    },
+    yAxis: {
+      type: 'category',
+      data: top5.map(d => d.customer_name),
+      axisLabel: {
+        overflow: 'truncate',
+        width: 80,
+      },
+    },
+    series: [
+      {
+        type: 'bar',
+        data: top5.map(d => d.outstanding_balance),
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: '#409EFF' },
+            { offset: 1, color: '#E6A23C' },
+          ]),
+          borderRadius: [0, 4, 4, 0],
+        },
+        barWidth: '60%',
+        label: {
+          show: true,
+          position: 'right',
+          formatter: params =>
+            Number(params.value) >= 10000
+              ? (Number(params.value) / 10000).toFixed(1) + '万'
+              : params.value,
+          fontSize: 11,
+          color: '#606266',
+        },
+      },
+    ],
+  }
+  customerChart.setOption(option)
+}
+
+// ── Resize handler ────────────────────────────────────────────────────────────
+
+function handleResize() {
+  trendChart?.resize()
+  customerChart?.resize()
+}
+
+// ── Data loaders ──────────────────────────────────────────────────────────────
 
 function changeClass(rate) {
   if (rate == null) return ''
   return rate >= 0 ? 'change-up' : 'change-down'
-}
-
-function getProfitRateClass(profit, revenue) {
-  const rate = (Number(profit) / Number(revenue)) * 100
-  if (rate >= 30) return 'text-success'
-  if (rate < 10) return 'text-danger'
-  return ''
 }
 
 async function loadDashboard() {
@@ -196,7 +288,7 @@ async function loadTrend() {
   trendLoading.value = true
   try {
     const { data } = await getRevenueTrend()
-    trendData.value = data
+    renderTrendChart(data)
   } catch {
     // handled by interceptor
   } finally {
@@ -208,10 +300,7 @@ async function loadCustomerAnalysis() {
   analysisLoading.value = true
   try {
     const { data } = await getCustomerAnalysis()
-    // Sort by outstanding_balance desc, take top 5
-    top5Customers.value = [...data]
-      .sort((a, b) => Number(b.outstanding_balance) - Number(a.outstanding_balance))
-      .slice(0, 5)
+    renderCustomerChart(data)
   } catch {
     // handled by interceptor
   } finally {
@@ -231,11 +320,23 @@ async function loadRecentOrders() {
   }
 }
 
+// ── Lifecycle ─────────────────────────────────────────────────────────────────
+
 onMounted(() => {
+  trendChart = echarts.init(trendChartRef.value)
+  customerChart = echarts.init(customerChartRef.value)
+  window.addEventListener('resize', handleResize)
+
   loadDashboard()
   loadTrend()
   loadCustomerAnalysis()
   loadRecentOrders()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  trendChart?.dispose()
+  customerChart?.dispose()
 })
 </script>
 
@@ -249,6 +350,8 @@ onMounted(() => {
 .page-header h2 {
   margin: 0;
 }
+
+/* Stat cards */
 .stat-card {
   text-align: center;
   padding: 8px 0;
@@ -266,28 +369,16 @@ onMounted(() => {
 .stat-change {
   font-size: 12px;
   margin-top: 6px;
+  min-height: 18px;
 }
-.change-up {
-  color: #67c23a;
-}
-.change-down {
-  color: #f56c6c;
-}
-.profit-pos {
-  color: #67c23a;
-}
-.profit-neg {
-  color: #f56c6c;
-}
-.text-warning {
-  color: #e6a23c;
-}
-.text-success {
-  color: #67c23a;
-}
-.text-danger {
-  color: #f56c6c;
-}
+.change-up   { color: #67c23a; }
+.change-down { color: #f56c6c; }
+.profit-pos  { color: #67c23a; }
+.profit-neg  { color: #f56c6c; }
+.text-warning { color: #e6a23c; }
+.text-success { color: #67c23a; }
+.text-danger  { color: #f56c6c; }
+
 .card-title {
   font-weight: 600;
   font-size: 15px;

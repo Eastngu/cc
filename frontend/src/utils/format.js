@@ -54,3 +54,9 @@ export const payableCategoryMap = {
   equipment: '设备',
   other: '其他',
 }
+
+export const statementStatusMap = {
+  draft: { label: '草稿', type: 'info' },
+  confirmed: { label: '已确认', type: 'success' },
+  sent: { label: '已发送', type: '' },
+}

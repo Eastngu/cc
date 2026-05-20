@@ -38,7 +38,15 @@
             <el-icon><Money /></el-icon>
             <template #title>收付款记录</template>
           </el-menu-item>
+          <el-menu-item index="/finance/statements">
+            <el-icon><Notebook /></el-icon>
+            <template #title>月度对账单</template>
+          </el-menu-item>
         </el-sub-menu>
+        <el-menu-item index="/costing">
+          <el-icon><Coin /></el-icon>
+          <template #title>成本核算</template>
+        </el-menu-item>
         <el-sub-menu index="/settings">
           <template #title>
             <el-icon><Setting /></el-icon>
@@ -85,7 +93,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { DataAnalysis, User, Fold, Expand, Document, Setting, Tools, Wallet, Tickets, CreditCard, Money } from '@element-plus/icons-vue'
+import { DataAnalysis, User, Fold, Expand, Document, Setting, Tools, Wallet, Tickets, CreditCard, Money, Notebook, Coin } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()

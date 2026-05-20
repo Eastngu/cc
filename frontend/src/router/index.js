@@ -55,6 +55,18 @@ const routes = [
         component: () => import('@/views/finance/PaymentList.vue'),
         meta: { title: '收付款记录' },
       },
+      {
+        path: 'finance/statements',
+        name: 'Statements',
+        component: () => import('@/views/finance/StatementList.vue'),
+        meta: { title: '月度对账单' },
+      },
+      {
+        path: 'costing',
+        name: 'Costing',
+        component: () => import('@/views/costing/CostList.vue'),
+        meta: { title: '成本核算' },
+      },
     ],
   },
 ]

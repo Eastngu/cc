@@ -3,6 +3,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from django.db.models import Sum
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, Border, Side
 from apps.users.permissions import IsBossOrFinance
 from .models import Receivable, Payable, Payment, MonthlyStatement
 from .serializers import (
@@ -87,6 +90,92 @@ class MonthlyStatementViewSet(viewsets.ModelViewSet):
 
         serializer = MonthlyStatementDetailSerializer(statement)
         return Response(serializer.data, status=201)
+
+    @action(detail=True, methods=['get'], url_path='export')
+    def export_excel(self, request, pk=None):
+        """Export statement as an Excel file."""
+        statement = self.get_object()
+        orders = statement.orders.all().order_by('shipped_at')
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = '对账单'
+
+        # Column widths
+        ws.column_dimensions['A'].width = 15
+        ws.column_dimensions['B'].width = 20
+        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['D'].width = 10
+        ws.column_dimensions['E'].width = 8
+        ws.column_dimensions['F'].width = 12
+        ws.column_dimensions['G'].width = 15
+        ws.column_dimensions['H'].width = 12
+
+        # Styles
+        title_font = Font(size=16, bold=True)
+        header_font = Font(size=10, bold=True)
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin'),
+        )
+
+        # Row 1: Title
+        ws.merge_cells('A1:H1')
+        ws['A1'] = '月度对账单'
+        ws['A1'].font = title_font
+        ws['A1'].alignment = Alignment(horizontal='center')
+
+        # Rows 3-5: Statement info
+        ws['A3'] = f'客户: {statement.customer.name}'
+        ws['A4'] = f'账期: {statement.year}年{statement.month}月'
+        ws['A5'] = f'对账单号: {statement.statement_no}'
+        ws['E3'] = f'状态: {statement.get_status_display()}'
+
+        # Row 7: Table header
+        headers = ['订单号', '产品名称', '规格型号', '数量', '单位', '单价', '金额', '出货日期']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=7, column=col, value=header)
+            cell.font = header_font
+            cell.border = thin_border
+            cell.alignment = Alignment(horizontal='center')
+
+        # Rows 8+: Order data
+        row = 8
+        for order in orders:
+            ws.cell(row=row, column=1, value=order.order_no).border = thin_border
+            ws.cell(row=row, column=2, value=order.product_name).border = thin_border
+            ws.cell(row=row, column=3, value=order.product_spec).border = thin_border
+            ws.cell(row=row, column=4, value=float(order.quantity)).border = thin_border
+            ws.cell(row=row, column=5, value=order.unit).border = thin_border
+            ws.cell(row=row, column=6, value=float(order.unit_price)).border = thin_border
+            ws.cell(row=row, column=7, value=float(order.total_amount)).border = thin_border
+            ws.cell(
+                row=row, column=8,
+                value=str(order.shipped_at) if order.shipped_at else ''
+            ).border = thin_border
+            row += 1
+
+        # Footer: totals (leave one blank row after data)
+        row += 1
+        ws.cell(row=row, column=6, value='合计:').font = header_font
+        ws.cell(row=row, column=7, value=float(statement.total_amount)).font = header_font
+        row += 1
+        ws.cell(row=row, column=6, value='调整:').font = header_font
+        ws.cell(row=row, column=7, value=float(statement.adjustment))
+        row += 1
+        ws.cell(row=row, column=6, value='最终金额:').font = header_font
+        ws.cell(row=row, column=7, value=float(statement.final_amount)).font = Font(size=12, bold=True)
+
+        # Build HTTP response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        filename = f'对账单_{statement.statement_no}.xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        wb.save(response)
+        return response
 
     @action(detail=True, methods=['patch'], url_path='confirm')
     def confirm(self, request, pk=None):

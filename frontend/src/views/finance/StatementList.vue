@@ -85,7 +85,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button
               v-if="row.status === 'draft'"
@@ -96,6 +96,7 @@
               确认
             </el-button>
             <el-button link type="primary" @click="handleViewDetail(row)">查看明细</el-button>
+            <el-button link type="warning" @click="handleExport(row)">导出</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -320,6 +321,25 @@ async function handleConfirm(row) {
   } catch {
     // user cancelled or interceptor handled
   }
+}
+
+function handleExport(row) {
+  const token = localStorage.getItem('access_token')
+  const url = `/api/v1/statements/${row.id}/export/`
+  fetch(url, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+    .then((res) => res.blob())
+    .then((blob) => {
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `对账单_${row.statement_no}.xlsx`
+      link.click()
+      URL.revokeObjectURL(link.href)
+    })
+    .catch(() => {
+      ElMessage.error('导出失败，请重试')
+    })
 }
 
 async function handleViewDetail(row) {

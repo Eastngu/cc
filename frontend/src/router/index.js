@@ -38,6 +38,12 @@ const routes = [
         meta: { title: '工艺配置', roles: ['boss', 'finance'] },
       },
       {
+        path: 'settings/pricing',
+        name: 'PricingRules',
+        component: () => import('@/views/settings/PricingRuleList.vue'),
+        meta: { title: '计费规则', roles: ['boss', 'finance'] },
+      },
+      {
         path: 'finance/receivables',
         name: 'Receivables',
         component: () => import('@/views/finance/ReceivableList.vue'),

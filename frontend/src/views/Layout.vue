@@ -60,6 +60,10 @@
             <el-icon><Tools /></el-icon>
             <template #title>工艺配置</template>
           </el-menu-item>
+          <el-menu-item index="/settings/pricing">
+            <el-icon><Money /></el-icon>
+            <template #title>计费规则</template>
+          </el-menu-item>
         </el-sub-menu>
       </el-menu>
     </el-aside>

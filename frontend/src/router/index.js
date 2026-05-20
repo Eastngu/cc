@@ -73,6 +73,12 @@ const routes = [
         component: () => import('@/views/costing/CostList.vue'),
         meta: { title: '成本核算', roles: ['boss', 'finance'] },
       },
+      {
+        path: 'settings/users',
+        name: 'Users',
+        component: () => import('@/views/settings/UserList.vue'),
+        meta: { title: '用户管理', roles: ['boss'] },
+      },
     ],
   },
 ]

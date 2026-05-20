@@ -25,6 +25,18 @@ const routes = [
         component: () => import('@/views/customers/CustomerList.vue'),
         meta: { title: '客户管理' },
       },
+      {
+        path: 'orders',
+        name: 'Orders',
+        component: () => import('@/views/orders/OrderList.vue'),
+        meta: { title: '订单管理' },
+      },
+      {
+        path: 'settings/processes',
+        name: 'Processes',
+        component: () => import('@/views/settings/ProcessList.vue'),
+        meta: { title: '工艺配置' },
+      },
     ],
   },
 ]

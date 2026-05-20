@@ -17,10 +17,24 @@
           <el-icon><DataAnalysis /></el-icon>
           <template #title>经营看板</template>
         </el-menu-item>
-        <el-menu-item index="/customers">
-          <el-icon><User /></el-icon>
-          <template #title>客户管理</template>
+        <el-menu-item index="/orders">
+          <el-icon><Document /></el-icon>
+          <template #title>订单管理</template>
         </el-menu-item>
+        <el-sub-menu index="/settings">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统设置</span>
+          </template>
+          <el-menu-item index="/customers">
+            <el-icon><User /></el-icon>
+            <template #title>客户管理</template>
+          </el-menu-item>
+          <el-menu-item index="/settings/processes">
+            <el-icon><Tools /></el-icon>
+            <template #title>工艺配置</template>
+          </el-menu-item>
+        </el-sub-menu>
       </el-menu>
     </el-aside>
     <el-container>
@@ -53,7 +67,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { DataAnalysis, User, Fold, Expand } from '@element-plus/icons-vue'
+import { DataAnalysis, User, Fold, Expand, Document, Setting, Tools } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()

@@ -2,6 +2,49 @@ from django.db import models
 from django.conf import settings
 
 
+class MonthlyStatement(models.Model):
+    STATUS_CHOICES = [
+        ('draft', '草稿'),
+        ('confirmed', '已确认'),
+        ('sent', '已发送'),
+    ]
+
+    statement_no = models.CharField('对账单号', max_length=20, unique=True)
+    customer = models.ForeignKey('customers.Customer', on_delete=models.PROTECT, verbose_name='客户')
+    year = models.IntegerField('年份')
+    month = models.IntegerField('月份')
+    total_amount = models.DecimalField('合计金额', max_digits=12, decimal_places=2, default=0)
+    adjustment = models.DecimalField('调整金额', max_digits=10, decimal_places=2, default=0)
+    final_amount = models.DecimalField('最终金额', max_digits=12, decimal_places=2, default=0)
+    status = models.CharField('状态', max_length=10, choices=STATUS_CHOICES, default='draft')
+    confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, verbose_name='确认人', related_name='confirmed_statements',
+    )
+    confirmed_at = models.DateTimeField('确认时间', null=True, blank=True)
+    orders = models.ManyToManyField('orders.Order', blank=True, verbose_name='关联订单')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'monthly_statements'
+        verbose_name = '月度对账单'
+        verbose_name_plural = verbose_name
+        ordering = ['-year', '-month']
+        unique_together = ['customer', 'year', 'month']
+
+    def __str__(self):
+        return f'{self.statement_no} - {self.customer}'
+
+    def save(self, *args, **kwargs):
+        if not self.statement_no:
+            self.statement_no = (
+                f"ST{int(self.year)}{int(self.month):02d}{int(self.customer_id):04d}"
+            )
+        self.final_amount = self.total_amount + self.adjustment
+        super().save(*args, **kwargs)
+
+
 class Receivable(models.Model):
     STATUS_CHOICES = [
         ('open', '未结'),

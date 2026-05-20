@@ -1,8 +1,9 @@
 from rest_framework.routers import DefaultRouter
-from .views import ReceivableViewSet, PayableViewSet, PaymentViewSet
+from .views import ReceivableViewSet, PayableViewSet, PaymentViewSet, MonthlyStatementViewSet
 
 router = DefaultRouter()
 router.register('receivables', ReceivableViewSet, basename='receivable')
 router.register('payables', PayableViewSet, basename='payable')
 router.register('payments', PaymentViewSet, basename='payment')
+router.register('statements', MonthlyStatementViewSet, basename='statement')
 urlpatterns = router.urls
